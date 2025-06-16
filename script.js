@@ -6,6 +6,26 @@ const audio     = document.getElementById('bell-sound');
 const radius    = circle.r.baseVal.value;
 const circumference = 2 * Math.PI * radius;
 
+// prime the audio on first user interaction
+function unlockAudio() {
+  // try to play then immediately pause & reset
+  audio.play()
+    .then(() => {
+      audio.pause();
+      audio.currentTime = 0;
+    })
+    .catch(() => {
+      /* if it fails, we'll try again on next interaction */
+    })
+    // remove this listener after first run
+  button.removeEventListener('pointerdown', unlockAudio);
+  button.removeEventListener('touchstart', unlockAudio);
+}
+
+// attach unlock listeners (once)
+button.addEventListener('pointerdown', unlockAudio, { once: true });
+button.addEventListener('touchstart', unlockAudio, { once: true });
+
 circle.style.strokeDasharray  = `${circumference} ${circumference}`;
 circle.style.strokeDashoffset = circumference;
 
@@ -65,15 +85,11 @@ function finishHold() {
   messageEl.textContent = 'Signal Sent!';
   messageEl.classList.remove('fade');
 
-  // Play the door‐bell sound
-  if (audio) {
-    audio.currentTime = 0;
-    audio.play().catch(() => {
-      // some browsers require user interaction, but long‐press should qualify
-    });
-  }
+  // now this .play() will succeed immediately on mobile
+  audio.currentTime = 0;
+  audio.play().catch(()=>{});
 
-  // TODO: Replace with fetch('/ring') to your ESP endpoint
+  // TODO: call your ESP endpoint here
   console.log('Bell signal sent to Arduino!');
 
   setTimeout(() => {
@@ -85,7 +101,7 @@ function finishHold() {
   }, 2000);
 }
 
-// Attach event listeners
+// Attach the rest of your listeners
 ['pointerdown','mousedown','touchstart'].forEach(evt =>
   button.addEventListener(evt, startHold)
 );
