@@ -1,0 +1,129 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+.wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(to bottom right, #3b82f6, #8b5cf6);
+  font-family: sans-serif;
+  color: #fff;
+  padding: 1rem;
+}
+h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1.5rem;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+#bell-button {
+  position: relative;
+  width: 170px;
+  height: 170px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.95);
+  border-radius: 50%;
+  border: 4px solid #c4b5fd;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+#bell-button.holding {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(99,102,241,0.6);
+  border-color: #7c3aed;
+}
+#bell-button.sent {
+  border-color: #22c55e;
+}
+#bell-icon {
+  font-size: 3rem;
+  transition: transform 0.2s, filter 0.2s, color 0.2s;
+  color: #7c3aed;
+}
+#bell-button.holding #bell-icon {
+  animation: bellWobble 1.2s infinite;
+  filter: drop-shadow(0 0 16px #6366f1aa);
+}
+#bell-button.sent #bell-icon {
+  animation: bounce 0.6s infinite;
+  filter: drop-shadow(0 0 16px #22c55e99);
+  color: #22c55e;
+}
+#progress-ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: rotate(-90deg);
+}
+#progress-circle {
+  stroke: #c7cffb;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.3s;
+}
+#bell-button.holding #progress-circle {
+  stroke: #7c3aed;
+  transition: none;
+}
+#bell-button.sent #progress-circle {
+  filter: drop-shadow(0 0 8px #22c55e);
+}
+#message {
+  margin-top: 1rem;
+  font-size: 1.125rem;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  opacity: 1;
+  transition: opacity 0.3s;
+}
+#message.fade {
+  opacity: 0;
+}
+
+/* Instructions box */
+.instructions-box {
+  margin-top: 1.5rem;
+  max-width: 320px;
+  background: rgba(255,255,255,0.85);
+  border-radius: 0.75rem;
+  padding: 1rem 1.5rem;
+  text-align: center;
+  color: #374151;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.instructions-box .instr-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #6D28D9;
+  margin-bottom: 0.5rem;
+}
+.instructions-box .instr-main {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #7C3AED;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+.instructions-box .instr-note {
+  font-size: 0.875rem;
+  color: #4B5563;
+}
+
+/* Animations */
+@keyframes bellWobble {
+  0%   { transform: rotate(0deg); }
+  10%  { transform: rotate(-15deg); }
+  20%  { transform: rotate(12deg); }
+  30%  { transform: rotate(-8deg); }
+  40%  { transform: rotate(5deg); }
+  50%  { transform: rotate(-2deg); }
+  60%  { transform: rotate(2deg); }
+  70%  { transform: rotate(-1deg); }
+  80%  { transform: rotate(1deg); }
+  100% { transform: rotate(0deg); }
+}
+@keyframes bounce {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(-10%); }
+}

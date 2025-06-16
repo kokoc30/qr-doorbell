@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Door Ring Bell</title>
+  <link rel="icon" type="image/png" sizes="100%" href="Ring.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="wrapper">
+    <h1>Door Ring Bell</h1>
+
+    <div id="bell-button" tabindex="0" role="button" aria-label="Ring Bell">
+      <svg id="progress-ring" width="170" height="170">
+        <circle
+          id="progress-circle"
+          cx="85" cy="85"
+          r="80"
+          stroke-width="10"
+          fill="transparent"
+        />
+      </svg>
+      <span id="bell-icon">🔔</span>
+    </div>
+
+    <div id="message">Press & Hold to Ring</div>
+
+    <div class="instructions-box">
+      <div class="instr-title">Instructions:</div>
+      <div class="instr-main">
+        Press and hold the bell to send a ring signal :)<br/>
+      </div>               
+    </div>
+
+    <!-- door-bell sound for playback -->
+    <audio id="bell-sound" src="Ring Doorbell Sound.mp3" preload="auto"></audio>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
