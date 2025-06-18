@@ -1,3 +1,5 @@
+const BELL_SERVER = 'http://192.168.1.3';
+
 const HOLD_DURATION_MS = 2000;
 const button    = document.getElementById('bell-button');
 const messageEl = document.getElementById('message');
@@ -8,21 +10,15 @@ const circumference = 2 * Math.PI * radius;
 
 // prime the audio on first user interaction
 function unlockAudio() {
-  // try to play then immediately pause & reset
   audio.play()
     .then(() => {
       audio.pause();
       audio.currentTime = 0;
     })
-    .catch(() => {
-      /* if it fails, we'll try again on next interaction */
-    })
-    // remove this listener after first run
+    .catch(() => {/* ignore */});
   button.removeEventListener('pointerdown', unlockAudio);
   button.removeEventListener('touchstart', unlockAudio);
 }
-
-// attach unlock listeners (once)
 button.addEventListener('pointerdown', unlockAudio, { once: true });
 button.addEventListener('touchstart', unlockAudio, { once: true });
 
@@ -36,8 +32,7 @@ let animationFrame;
 let holdTimeout;
 
 function setProgress(progress) {
-  const offset = circumference * (1 - progress);
-  circle.style.strokeDashoffset = offset;
+  circle.style.strokeDashoffset = circumference * (1 - progress);
 }
 
 function startHold(e) {
@@ -72,6 +67,9 @@ function cancelHold(e) {
   setProgress(0);
   messageEl.textContent = 'Press & Hold to Ring';
   messageEl.classList.add('fade');
+
+  // notify ESP to stop buzzing (in case it was ringing)
+  fetch(`${BELL_SERVER}/stop`).catch(console.error);
 }
 
 function finishHold() {
@@ -85,14 +83,18 @@ function finishHold() {
   messageEl.textContent = 'Signal Sent!';
   messageEl.classList.remove('fade');
 
-  // now this .play() will succeed immediately on mobile
+  // play local audio
   audio.currentTime = 0;
   audio.play().catch(()=>{});
 
-  // TODO: call your ESP endpoint here
-  console.log('Bell signal sent to Arduino!');
+  // tell your ESP to start buzzing
+  fetch(`${BELL_SERVER}/ring`).catch(console.error);
 
+  // after 2s, stop everything
   setTimeout(() => {
+    // turn off ESP buzzer
+    fetch(`${BELL_SERVER}/stop`).catch(console.error);
+
     sent = false;
     button.classList.remove('sent');
     setProgress(0);
@@ -101,7 +103,7 @@ function finishHold() {
   }, 2000);
 }
 
-// Attach the rest of your listeners
+// Attach all the event listeners
 ['pointerdown','mousedown','touchstart'].forEach(evt =>
   button.addEventListener(evt, startHold)
 );
