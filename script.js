@@ -1,5 +1,22 @@
-const BELL_SERVER = 'http://192.168.1.3';
+// ----------------------------------------------------------------
+// MQTT setup over WebSockets
+// ----------------------------------------------------------------
+// Note: HiveMQ’s public WS broker. No credentials needed.
+const MQTT_URL   = 'wss://broker.hivemq.com:8000/mqtt';
+const MQTT_TOPIC = 'qr-doorbell/doorbell';
+const client     = mqtt.connect(MQTT_URL);
 
+client.on('connect', () => {
+  console.log('✅ MQTT connected');
+});
+
+client.on('error', err => {
+  console.error('❌ MQTT error', err);
+});
+
+// ----------------------------------------------------------------
+// Door-bell UI logic (unchanged except for MQTT publishes)
+// ----------------------------------------------------------------
 const HOLD_DURATION_MS = 2000;
 const button    = document.getElementById('bell-button');
 const messageEl = document.getElementById('message');
@@ -8,111 +25,88 @@ const audio     = document.getElementById('bell-sound');
 const radius    = circle.r.baseVal.value;
 const circumference = 2 * Math.PI * radius;
 
-// prime the audio on first user interaction
+// unlock audio on first interaction
 function unlockAudio() {
   audio.play()
-    .then(() => {
-      audio.pause();
-      audio.currentTime = 0;
-    })
-    .catch(() => {/* ignore */});
+    .then(() => { audio.pause(); audio.currentTime = 0; })
+    .catch(()=>{/* ignore */});
   button.removeEventListener('pointerdown', unlockAudio);
   button.removeEventListener('touchstart', unlockAudio);
 }
 button.addEventListener('pointerdown', unlockAudio, { once: true });
-button.addEventListener('touchstart', unlockAudio, { once: true });
+button.addEventListener('touchstart', unlockAudio,  { once: true });
 
 circle.style.strokeDasharray  = `${circumference} ${circumference}`;
 circle.style.strokeDashoffset = circumference;
 
-let isHolding  = false;
-let sent       = false;
-let startTime  = 0;
-let animationFrame;
-let holdTimeout;
+let isHolding=false, sent=false, startTime=0, animationFrame, holdTimeout;
+function setProgress(p){ circle.style.strokeDashoffset = circumference*(1-p); }
 
-function setProgress(progress) {
-  circle.style.strokeDashoffset = circumference * (1 - progress);
-}
-
-function startHold(e) {
-  if (sent) return;
+function startHold(e){
+  if(sent) return;
   e.preventDefault();
-  isHolding = true;
+  isHolding=true;
   button.classList.add('holding');
-  messageEl.textContent = 'Keep holding…';
+  messageEl.textContent='Keep holding…';
   messageEl.classList.remove('fade');
-  startTime = Date.now();
+  startTime=Date.now();
   setProgress(0);
 
-  function animate() {
-    const elapsed = Date.now() - startTime;
-    const prog = Math.min(elapsed / HOLD_DURATION_MS, 1);
+  function animate(){
+    const prog=Math.min((Date.now()-startTime)/HOLD_DURATION_MS,1);
     setProgress(prog);
-    if (prog < 1) {
-      animationFrame = requestAnimationFrame(animate);
-    }
+    if(prog<1) animationFrame=requestAnimationFrame(animate);
   }
-  animationFrame = requestAnimationFrame(animate);
-  holdTimeout = setTimeout(finishHold, HOLD_DURATION_MS);
+  animationFrame=requestAnimationFrame(animate);
+  holdTimeout=setTimeout(finishHold, HOLD_DURATION_MS);
 }
 
-function cancelHold(e) {
-  if (!isHolding) return;
+function cancelHold(e){
+  if(!isHolding) return;
   e.preventDefault();
-  isHolding = false;
+  isHolding=false;
   button.classList.remove('holding');
   cancelAnimationFrame(animationFrame);
   clearTimeout(holdTimeout);
   setProgress(0);
-  messageEl.textContent = 'Press & Hold to Ring';
+  messageEl.textContent='Press & Hold to Ring';
   messageEl.classList.add('fade');
 
-  // notify ESP to stop buzzing (in case it was ringing)
-  fetch(`${BELL_SERVER}/stop`).catch(console.error);
+  // stop buzzer remotely
+  client.publish(MQTT_TOPIC, 'stop');
 }
 
-function finishHold() {
-  isHolding = false;
-  sent      = true;
+function finishHold(){
+  isHolding=false;
+  sent=true;
   button.classList.remove('holding');
   button.classList.add('sent');
   cancelAnimationFrame(animationFrame);
   clearTimeout(holdTimeout);
   setProgress(1);
-  messageEl.textContent = 'Signal Sent!';
+  messageEl.textContent='Signal Sent!';
   messageEl.classList.remove('fade');
 
-  // play local audio
-  audio.currentTime = 0;
+  // play local click
+  audio.currentTime=0;
   audio.play().catch(()=>{});
 
-  // tell your ESP to start buzzing
-  fetch(`${BELL_SERVER}/ring`).catch(console.error);
+  // start buzzer remotely
+  client.publish(MQTT_TOPIC, 'ring');
 
-  // after 2s, stop everything
-  setTimeout(() => {
-    // turn off ESP buzzer
-    fetch(`${BELL_SERVER}/stop`).catch(console.error);
-
-    sent = false;
+  // reset after 2s
+  setTimeout(()=>{
+    client.publish(MQTT_TOPIC, 'stop');
+    sent=false;
     button.classList.remove('sent');
     setProgress(0);
-    messageEl.textContent = 'Press & Hold to Ring';
+    messageEl.textContent='Press & Hold to Ring';
     messageEl.classList.add('fade');
   }, 2000);
 }
 
-// Attach all the event listeners
-['pointerdown','mousedown','touchstart'].forEach(evt =>
-  button.addEventListener(evt, startHold)
-);
-['pointerup','mouseup','mouseleave','touchend','touchcancel'].forEach(evt =>
-  button.addEventListener(evt, cancelHold)
-);
-button.addEventListener('keydown', e => {
-  if (e.code === 'Space' || e.code === 'Enter') startHold(e);
-});
-button.addEventListener('keyup', e => {
-  if (e.code === 'Space' || e.code === 'Enter') cancelHold(e);
-});
+// attach UI listeners
+['pointerdown','mousedown','touchstart'].forEach(evt=>button.addEventListener(evt, startHold));
+['pointerup','mouseup','mouseleave','touchend','touchcancel'].forEach(evt=>button.addEventListener(evt, cancelHold));
+button.addEventListener('keydown', e=>{ if(e.code==='Space'||e.code==='Enter') startHold(e); });
+button.addEventListener('keyup',   e=>{ if(e.code==='Space'||e.code==='Enter') cancelHold(e); });
