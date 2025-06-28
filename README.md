@@ -77,8 +77,8 @@ The static front-end lives in the `gh-pages` branch and is served at the demo UR
 
 ## License
 
-© 2025 **kokoc30**. All rights reserved.
-
 This project is the original work and idea of [@kokoc30](https://github.com/kokoc30).
+
+© 2025 **kokoc30**. All rights reserved.
 
 
