@@ -61,14 +61,24 @@ Connect the buzzer directly to the D1 Mini:
     const char* ssid = "YOUR_SSID";
     const char* pass = "YOUR_PASSWORD";
     ```
-4. **Select** your board and settings:  
-    - **Tools → Board** → `LOLIN(WEMOS) D1 mini (clone)`  
-    - **Tools → Flash Size** → `4MB (FS: none)`  
-5. **Upload**, then open the **Serial Monitor** at **115200 baud** to see the assigned IP.
+4. **Upload**, then open the **Serial Monitor** at **115200 baud** to see the assigned IP.
 
-```cpp
-#include <ESP8266WiFi.h>
-#include <PubSubClient.h>
-#define BUZZER_PIN D2  // GPIO4
 
-// … rest of your sketch …
+## Web Interface
+
+The static front-end lives in the `gh-pages` branch and is served at the demo URL above. It uses vanilla HTML, CSS, and JS (with MQTT over WebSockets) to send `"ring"` and `"stop"` commands to your ESP.
+
+## Usage
+
+1. **Print** and display the sign with the QR code by your door.  
+2. **Guest** scans the QR and loads the interface in their browser.  
+3. **Press & hold** the 🔔 icon for **3 seconds**.  
+4. The **buzzer rings** inside your home, alerting you to visitors.
+
+## License
+
+© 2025 **kokoc30**. All rights reserved.
+
+This project is the original work and idea of [@kokoc30](https://github.com/kokoc30).
+
+
