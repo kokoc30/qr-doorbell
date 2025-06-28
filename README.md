@@ -47,7 +47,7 @@ Connect the buzzer directly to the D1 Mini:
 - **Buzzer “+”** → **D2 (GPIO4)** on the D1 Mini  
 - **Buzzer “–”** → **GND** on the D1 Mini  
 
-![Wiring Diagram](./assets/wiring-diagram.png)
+<img src="A_Setup.jpg" alt="QR Code" width="250" />
 
 ---
 
