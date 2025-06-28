@@ -28,7 +28,6 @@ A **simple IoT doorbell** that uses a QR code and a web interface to ring a buzz
 ## QR Code
 **Scan this code** with your phone to open the doorbell interface:
 
-![QR Code](3.PNG)
 <img src="3.PNG" alt="QR Code" width="150" />
 
 ---
